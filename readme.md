@@ -52,7 +52,17 @@
 
 **This repository provides installation and usage scripts for TimeOmni-1.**
 
+>
+> 🙋 Please let us know if you find out a mistake or have any suggestions!
+> 
+> 🌟 If you find this resource helpful, please consider to star this repository and cite our research:
+
 ---
+
+## Updates/News:
+🚩 **News** (Feb. 2026): Please find the open source model on Hugging Face: https://huggingface.co/anton-hugging/TimeOmni-1-7B; see also our online demo: https://huggingface.co/spaces/anton-hugging/TimeOmni-1
+
+🚩 **News** (Jan. 2026): TimeOmni-1 has been accepted to ICLR 2026! 🎉
 
 ## 🛠️ Installation
 ```bash
@@ -107,8 +117,8 @@ bash eval/run-timeomini_test.sh
 
 We report Success Rate (SR), defined as the proportion of model outputs that yield a valid and extractable answer. All other metrics are computed on valid cases only.
 
-**Tasks 1, 2, 4:** model outputs a single uppercase letter (A/B/C/D). Metric: Accuracy (ACC).  
-**Task 3:** model outputs a sequence (e.g., `[2, 20, 21, ..., 83]`). Metric: Mean Absolute Error (MAE).
++ **Tasks 1, 2, 4:** model outputs a single uppercase letter (A/B/C/D). Metric: Accuracy (ACC).  
++ **Task 3:** model outputs a sequence (e.g., `[2, 20, 21, ..., 83]`). Metric: Mean Absolute Error (MAE).
 
 ## ✍️ Citation
 

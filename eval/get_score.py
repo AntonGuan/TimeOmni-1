@@ -61,7 +61,7 @@ if __name__ == "__main__":
         test_data = [item for item in test_data if item["task_type"] in selected_tasks]
         task_list = selected_tasks
 
-    # stats data
+    # Stats data
     stats_data = {task: {"rewards": [], "valid_flags": [], "valid_rewards": []} for task in task_list}
     
     for item in tqdm(test_data, total=len(test_data)):
@@ -77,17 +77,17 @@ if __name__ == "__main__":
             reward, is_valid = compute_reward(pred_content, item["response"], item["problem"], task_type, args.model_name)
             reward = float(reward)
         
-        # record stats data
+        # Record stats data
         stats_data[task_type]["rewards"].append(reward)
         stats_data[task_type]["valid_flags"].append(is_valid)
         if is_valid:
             stats_data[task_type]["valid_rewards"].append(reward)
         
-        # save to item
+        # Save to item
         item["reward"] = reward
         item["is_valid"] = is_valid
 
-    # calculate three metrics
+    # Calculate three metrics
     final_stats = {}
     for task in task_list:
         rewards = stats_data[task]["rewards"]
@@ -97,15 +97,15 @@ if __name__ == "__main__":
         total_count = len(rewards)
         valid_count = sum(valid_flags)
         
-        # 1. overall accuracy (for discrete-output tasks are accuracy, for sequence-output tasks are average MAE)
+        # Overall accuracy (for discrete-output tasks are accuracy, for sequence-output tasks are average MAE)
         if task in ["scenario_understanding", "causality_discovery", "decision_making"]:
             overall_accuracy = np.mean(rewards) if total_count > 0 else 0.0
             valid_accuracy = np.mean(valid_rewards) if valid_count > 0 else 0.0
-        else:  # event_aware_forecasting
+        else:  # Event_aware_forecasting
             overall_accuracy = np.mean(rewards) if total_count > 0 else 0.0
             valid_accuracy = np.mean(valid_rewards) if valid_count > 0 else 0.0
         
-        # 2. success rate (legal rate)
+        # Success rate (legal rate)
         success_rate = valid_count / total_count if total_count > 0 else 0.0
         
         final_stats[task] = {
@@ -116,7 +116,7 @@ if __name__ == "__main__":
             "valid_samples": valid_count
         }
     
-    # calculate overall stats
+    # Calculate overall stats
     all_rewards = []
     all_valid_flags = []
     all_valid_rewards = []

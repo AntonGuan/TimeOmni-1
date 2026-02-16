@@ -72,7 +72,7 @@ def main(args):
 
     llm = LLM(
         model=args.model_dir,
-        max_model_len=8192,  # maximum prompt length
+        max_model_len=8192,
         max_num_seqs=args.batch_size,
         tensor_parallel_size=args.parallel_size,
         gpu_memory_utilization=0.9,
@@ -83,7 +83,7 @@ def main(args):
         temperature=0.1,
         top_p=0.001,
         repetition_penalty=1.05,
-        max_tokens=args.max_model_len,  # limits the output length
+        max_tokens=args.max_model_len,
         stop_token_ids=[],
     )
 

@@ -3,8 +3,8 @@ import ast
 import numpy as np
 
 def invalid_mae_penalty(gt):
-    gt = np.array(gt, dtype=float)   # ground truth sequence, like [1.2, 3.4, 2.1]
-    zero_pred = np.zeros_like(gt)              # generate a sequence with the same shape but all 0s [0.0, 0.0, 0.0]
+    gt = np.array(gt, dtype=float)   # Ground truth sequence, like [1.2, 3.4, 2.1]
+    zero_pred = np.zeros_like(gt)              # Generate a sequence with the same shape but all 0s [0.0, 0.0, 0.0]
     return float(np.mean(np.abs(zero_pred - gt)))
 
 
@@ -44,38 +44,37 @@ def compute_reward(pred_rat, response, problem, task_type, model_name):
     """
     
     if task_type in ["scenario_understanding", "causality_discovery", "decision_making"]:
-        content_answer = extract_answer(pred_rat) # extract the output classification result
-        # content_answer = pred_rat
+        content_answer = extract_answer(pred_rat) # Extract the output classification result
         if content_answer:
             # Remove any characters that are not letters or spaces
             content_answer = re.sub(r'[^a-zA-Z\s]', '', content_answer)
-        solution_answer = response  # extract the ground truth classification result
+        solution_answer = response  # Extract the ground truth classification result
         if content_answer:
-            # if the answer is successfully extracted, compare it
+            # If the answer is successfully extracted, compare it
             reward = 1.0 if content_answer.strip().upper() == solution_answer.strip().upper() else 0.0
-            is_valid = True  # considered valid
+            is_valid = True  # Considered valid
         else:
-            # if the answer is not successfully extracted, give 0
+            # If the answer is not successfully extracted, give 0
             reward = 0.0
-            is_valid = False  # not valid
+            is_valid = False  # Not valid
         return reward, is_valid
     
     elif task_type == "event_aware_forecasting":
-        # first parse ground truth
+        # First parse ground truth
         gt_list = response
         if isinstance(gt_list, str):
             gt_list = ast.literal_eval(gt_list)
         if not isinstance(gt_list, (list, tuple)):
             raise ValueError("groundtruth is not a time series")
         
-        # try to parse prediction result
+        # Try to parse prediction result
         try:
-            content_answer = extract_list(extract_answer(pred_rat)) # extract prediction sequence
+            content_answer = extract_list(extract_answer(pred_rat)) # Extract prediction sequence
             pred_list = ast.literal_eval(content_answer)
             if not isinstance(pred_list, (list, tuple)):
                 pred_list = [pred_list]
         except Exception as e:
-            # prediction result parsing failed, not valid
+            # Prediction result parsing failed, not valid
             return invalid_mae_penalty(gt_list), False
 
         # Verify the two lists have same length

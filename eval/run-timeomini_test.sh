@@ -37,7 +37,7 @@ for src, dst in [
 PY
 fi
 
-# Run inference for ID test data - 4 processes in parallel
+# Run inference for ID test data -- 4 processes in parallel on 4 GPUs
 CUDA_VISIBLE_DEVICES=0 python "$ROOT_DIR/eval/inference.py" \
     --model_dir "$MODEL_DIR" \
     --test_file "$ID_TEST_FILE" \
@@ -80,7 +80,7 @@ CUDA_VISIBLE_DEVICES=3 python "$ROOT_DIR/eval/inference.py" \
 
 wait
 
-# Run inference for OOD test data - 4 processes in parallel
+# Run inference for OOD test data - 4 processes in parallel on 4 GPUs
 CUDA_VISIBLE_DEVICES=0 python "$ROOT_DIR/eval/inference.py" \
     --model_dir "$MODEL_DIR" \
     --test_file "$OOD_TEST_FILE" \
