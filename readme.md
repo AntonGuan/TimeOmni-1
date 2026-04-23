@@ -15,7 +15,7 @@
     />
   </a>
 
-  <a href="https://huggingface.co/anton-hugging/TimeOmni-1-7B">
+  <a href="https://huggingface.co/collections/anton-hugging/timeomni-1-from-4b-to-9b">
     <img
       src="https://img.shields.io/badge/TimeOmni--1-Model-yellow?logo=huggingface&logoColor=white"
       style="display: inline-block; vertical-align: middle;"
