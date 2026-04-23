@@ -60,6 +60,9 @@
 ---
 
 ## Updates/News:
+
+🚩 **News** (Apr. 2026): We have released new post-trained versions based on Qwen3.5 on Hugging Face: [TimeOmni-1-9B](https://huggingface.co/TimeOmni-1/TimeOmni-1-9B) and [TimeOmni-1-4B](https://huggingface.co/TimeOmni-1/TimeOmni-1-4B). These new versions further scale up model performance (inference code coming soon).
+
 🚩 **News** (Feb. 2026): Please find the open source model on Hugging Face: https://huggingface.co/anton-hugging/TimeOmni-1-7B; see also our online demo: https://huggingface.co/spaces/anton-hugging/TimeOmni-1
 
 🚩 **News** (Jan. 2026): TimeOmni-1 has been accepted to ICLR 2026! 🎉
