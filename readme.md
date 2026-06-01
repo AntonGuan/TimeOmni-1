@@ -61,7 +61,7 @@
 
 ## Updates/News:
 
-🚩 **News** (Apr. 2026): We have released new post-trained versions based on Qwen3.5 on Hugging Face: [TimeOmni-1-9B](https://huggingface.co/TimeOmni-1/TimeOmni-1-9B) and [TimeOmni-1-4B](https://huggingface.co/TimeOmni-1/TimeOmni-1-4B). These new versions further scale up model performance (inference code coming soon).
+🚩 **News** (Apr. 2026): We have released new post-trained versions based on Qwen3.5 on Hugging Face: [TimeOmni-1-9B](https://huggingface.co/TimeOmni-1/TimeOmni-1-9B) and [TimeOmni-1-4B](https://huggingface.co/TimeOmni-1/TimeOmni-1-4B). These new versions further scale up model performance, and inference & evaluation are now fully supported by this repository (see below).
 
 🚩 **News** (Feb. 2026): Please find the open source model on Hugging Face: [TimeOmni-1-7B](https://huggingface.co/anton-hugging/TimeOmni-1-7B); see also our online demo: https://huggingface.co/spaces/anton-hugging/TimeOmni-1
 
@@ -176,10 +176,19 @@ pip install -r requirements.txt
 ```
 
 ## 📦 Model Download
+Download a single checkpoint by its short tag (`7B`, `4B`, or `9B`):
 ```bash
-python install/download_hf_model.py
+python install/download_hf_model.py --model 7B   # anton-hugging/TimeOmni-1-7B (Qwen2.5)
+python install/download_hf_model.py --model 4B   # TimeOmni-1/TimeOmni-1-4B    (Qwen3.5)
+python install/download_hf_model.py --model 9B   # TimeOmni-1/TimeOmni-1-9B    (Qwen3.5)
 ```
-Default model path: `~/.cache/huggingface/hub`.
+Or download all released checkpoints at once:
+```bash
+python install/download_hf_model.py --all
+```
+Models are stored in the shared Hugging Face cache (`.hf/` at the workspace root, i.e.
+`--cache_dir`). A `--model` value may also be any full Hugging Face repo id. To additionally
+materialise a flat copy, pass `--local_dir <path>`.
 
 ## 🧪 Dataset Download
 ```bash
@@ -197,13 +206,22 @@ Output Format:
 <answer>Your final answer(Note: Only output a single uppercase letter of the correct option)</answer>
 ```
 
-Run:
+Run (works for all checkpoints — `TimeOmni-1-7B`, `TimeOmni-1-4B`, `TimeOmni-1-9B`):
 ```bash
 python inference/inference.py \
   --model_dir "Local Model Path /models--anton-hugging--TimeOmni-1-7B/snapshots/<hash>" \
   --question "Your Question" \
   --system_prompt "Output Format:\n<think>Your step-by-step reasoning process that justifies your answer</think>\n<answer>Your final answer(Note: Only output a single uppercase letter of the correct option)</answer>"
 ```
+`--model_dir` accepts either a local snapshot path or a Hugging Face repo id (e.g.
+`TimeOmni-1/TimeOmni-1-4B`). The script auto-selects the right loader: the Qwen3.5-based
+4B/9B checkpoints are VLM-backed, and only their text (language-model) weights are loaded
+for time-series reasoning.
+
+> **Note (Qwen3.5 / 4B & 9B):** these models use linear (gated-delta-net) attention, which
+> vLLM JIT-compiles at load time and therefore requires the `ninja` build tool (installed via
+> `requirements.txt`; the binary must be on `PATH`). The evaluation script automatically loads
+> only the language model for these VLM-backed checkpoints.
 
 ## 📊 Evaluation
 ```bash

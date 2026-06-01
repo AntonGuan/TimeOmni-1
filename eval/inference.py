@@ -4,25 +4,19 @@ import json
 import argparse
 import itertools
 from tqdm import tqdm
-from concurrent.futures import ThreadPoolExecutor, as_completed
 import torch
 from vllm import LLM, SamplingParams
 from statistics import median
 import random
 
-def set_prompt(question: str, system_prompt: str):
-    return_prompt = (f"<|im_start|>system\n{system_prompt}<|im_end|>\n"
-        f"<|im_start|>user\n{question}<|im_end|>\n"
-        "<|im_start|>assistant\n")
-    return return_prompt
-
-
 def get_message(data_item):
-    message_item = [{
+    return {
         "question_id": data_item['question_id'],
-        "prompt": set_prompt(data_item['problem'], data_item['system']),
-    }]
-    return message_item
+        "messages": [
+            {"role": "system", "content": data_item["system"]},
+            {"role": "user", "content": data_item["problem"]},
+        ],
+    }
 
 
 def batched_iterable(iterable, batch_size):
@@ -32,6 +26,25 @@ def batched_iterable(iterable, batch_size):
         if not batch:
             break
         yield batch
+
+
+def is_multimodal_model(model_dir):
+    """Detect VLM-backed checkpoints (e.g. Qwen3.5 used by TimeOmni-1-4B/9B).
+
+    These ship a vision tower we do not need for text-only time-series
+    reasoning. vLLM should load them with ``language_model_only=True`` so the
+    vision weights are skipped. Qwen2.5-based TimeOmni-1-7B is text-only and
+    returns False here.
+    """
+    from transformers import AutoConfig
+    try:
+        cfg = AutoConfig.from_pretrained(model_dir, trust_remote_code=True)
+    except Exception:
+        return False
+    if getattr(cfg, "vision_config", None) is not None:
+        return True
+    archs = getattr(cfg, "architectures", None) or []
+    return any(("ConditionalGeneration" in a) or ("ImageTextToText" in a) for a in archs)
 
 
 def main(args):
@@ -70,15 +83,28 @@ def main(args):
             "system": item['system'],
         }
 
-    llm = LLM(
+    # Qwen3.5-based checkpoints (TimeOmni-1-4B/9B) are VLM-backed; load only the
+    # language model so vLLM skips the unused vision tower. Auto-enabled unless
+    # the user already forced it on via --language_model_only.
+    language_model_only = args.language_model_only or is_multimodal_model(args.model_dir)
+    if language_model_only and not args.language_model_only:
+        print(f"[inference] detected multimodal checkpoint; enabling language_model_only for {args.model_dir}")
+
+    llm_kwargs = dict(
         model=args.model_dir,
-        max_model_len=8192,
+        max_model_len=args.max_model_len,
         max_num_seqs=args.batch_size,
         tensor_parallel_size=args.parallel_size,
-        gpu_memory_utilization=0.9,
-        enforce_eager=True,
+        gpu_memory_utilization=args.gpu_memory_utilization,
+        enforce_eager=args.enforce_eager,
         trust_remote_code=True,
+        dtype=args.dtype,
     )
+    # Only pass language_model_only for VLM-backed models; text-only models
+    # (e.g. Qwen2.5-based TimeOmni-1-7B) do not accept this override.
+    if language_model_only:
+        llm_kwargs["language_model_only"] = True
+    llm = LLM(**llm_kwargs)
     sampling_params = SamplingParams(
         temperature=0.1,
         top_p=0.001,
@@ -93,15 +119,18 @@ def main(args):
 
 
     for batch in tqdm(batched_iterable(test_data, args.batch_size), total=int(math.ceil(len(test_data)/args.batch_size)), desc=f"{args.proc_id}_batch_infer"):
-        messages = []
+        request_batch = []
         token_lens_in_batch = []
-        with ThreadPoolExecutor(max_workers=args.workers) as executor:
-            futures = {executor.submit(get_message, item): item for item in batch}
-            for future in as_completed(futures):
-                messages.extend(future.result())
-        responses = llm.generate(messages, sampling_params=sampling_params, use_tqdm=False)
+        for item in batch:
+            request_batch.append(get_message(item))
+
+        responses = llm.chat(
+            [request["messages"] for request in request_batch],
+            sampling_params=sampling_params,
+            use_tqdm=False,
+        )
         
-        for msg, res in zip(messages, responses):
+        for request, res in zip(request_batch, responses):
             generated_text = res.outputs[0].text
 
             # token number
@@ -110,13 +139,13 @@ def main(args):
             token_lens_in_batch.append(tok_len)
 
             cur_item = {
-                "question_id": msg['question_id'],
-                "problem": id_info_mapping[msg['question_id']]['problem'],
+                "question_id": request['question_id'],
+                "problem": id_info_mapping[request['question_id']]['problem'],
                 "pred_rat": generated_text,
-                "response": id_info_mapping[msg['question_id']]['response'],
-                "task_type": id_info_mapping[msg['question_id']]['task_type'],
-                "domain": id_info_mapping[msg['question_id']]['domain'],
-                "system": id_info_mapping[msg['question_id']]['system'],
+                "response": id_info_mapping[request['question_id']]['response'],
+                "task_type": id_info_mapping[request['question_id']]['task_type'],
+                "domain": id_info_mapping[request['question_id']]['domain'],
+                "system": id_info_mapping[request['question_id']]['system'],
             }
             with open(f"{args.output_path[:-5]}{args.proc_id}.json", "a", encoding='utf-8') as F:
                 F.write(f"{json.dumps(cur_item, ensure_ascii=False)}\n")
@@ -158,6 +187,10 @@ if __name__ == "__main__":
     parser.add_argument('--workers', type=int, default=1)
     parser.add_argument('--parallel_size', type=int, default=1)
     parser.add_argument('--max_model_len', type=int, default=4096, help="Max model length.")
+    parser.add_argument('--gpu_memory_utilization', type=float, default=0.9)
+    parser.add_argument('--dtype', type=str, default="auto")
+    parser.add_argument('--language_model_only', action="store_true")
+    parser.add_argument('--enforce_eager', action="store_true")
     parser.add_argument('--task_type', type=str, default=None, 
                        help="Task types to evaluate. --task_type causality_discovery, event_aware_forecasting")
     args = parser.parse_args()

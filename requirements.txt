@@ -1,6 +1,8 @@
 torch
-transformers
-vllm
+accelerate
+transformers>=5.6.0
+vllm>=0.19.0
+ninja
 numpy
 tqdm
 huggingface_hub
