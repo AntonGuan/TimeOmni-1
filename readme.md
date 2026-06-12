@@ -67,6 +67,8 @@
 
 ## Updates/News:
 
+🚩 **News** (Jun. 2026): We have added a [demo video](https://antonguan.github.io/assets/videos/TimeOmni-1_Demo.mp4) showing how TimeOmni-1 solves time series reasoning tasks.
+
 🚩 **News** (Apr. 2026): We have released new post-trained versions based on Qwen3.5 on Hugging Face: [TimeOmni-1-9B](https://huggingface.co/TimeOmni-1/TimeOmni-1-9B) and [TimeOmni-1-4B](https://huggingface.co/TimeOmni-1/TimeOmni-1-4B). These new versions further scale up model performance, and inference & evaluation are now fully supported by this repository (see below).
 
 🚩 **News** (Feb. 2026): Please find the open source model on Hugging Face: [TimeOmni-1-7B](https://huggingface.co/anton-hugging/TimeOmni-1-7B); see also our online demo: https://huggingface.co/spaces/anton-hugging/TimeOmni-1
