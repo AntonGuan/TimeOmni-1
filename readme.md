@@ -61,7 +61,7 @@
 
 [![TimeOmni-1 demo teaser](figs/demo_teaser.gif)](https://antonguan.github.io/assets/videos/TimeOmni-1_Demo.mp4)
 
-▶️ Click the teaser to watch the **[full 2.5-minute demo with narration](https://antonguan.github.io/assets/videos/TimeOmni-1_Demo.mp4)**. It shows all four TSR-Suite tasks (scenario understanding, causality discovery, event-aware forecasting, decision making) answered live by TimeOmni-1-7B on the [Hugging Face Space](https://huggingface.co/spaces/anton-hugging/TimeOmni-1).
+▶️ Click the teaser to watch the **[full 2.5-minute demo](https://antonguan.github.io/assets/videos/TimeOmni-1_Demo.mp4)**. It shows all four TSR-Suite tasks (scenario understanding, causality discovery, event-aware forecasting, decision making) answered live by TimeOmni-1-7B on the [Hugging Face Space](https://huggingface.co/spaces/anton-hugging/TimeOmni-1).
 
 ---
 
